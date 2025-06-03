@@ -14,3 +14,7 @@
     --disabled: #efefef;
   }
 }
+
+.nav_item {
+  font-size: 130%;
+}
