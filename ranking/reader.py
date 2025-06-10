@@ -36,7 +36,7 @@ class Team:
 		return (self.players[0]==other.players[0] and self.players[1]==other.players[1]) or (self.players[0]==other.players[1] and self.players[1]==other.players[0])
 
 	def __str__(self):
-		return f"({self.players[0]} and {self.players[1]})"
+		return f"{self.players[0]} and {self.players[1]}"
 
 	def __repr__(self):
 		return str(self)
@@ -62,7 +62,7 @@ class Match:
 		return [str(self.team1), str(self.team2), str(self.point1), str(self.point2), str(self.date)]
 
 	def __str__(self):
-		return f"{self.team1} vs {self.team2} : {self.point1}/{self.point2}"
+		return f"({self.team1}) vs ({self.team2}) : {self.point1}/{self.point2}"
 
 	def __repr__(self):
 		return str(self)
@@ -150,13 +150,13 @@ class Data:
 		self.graph.add_edge(t1,t2)
 		if "points" not in self.graph[t1][t2]:
 			self.graph[t1][t2]["points"] = 0
-			self.graph[t1][t2]["total"] = 0
-		self.graph[t1][t2]["points"] += point1
-		self.graph[t1][t2]["total"] += point1+point2
+			self.graph[t1][t2]["count"] = 0
+		self.graph[t1][t2]["points"] += point1/(point1+point2)
+		self.graph[t1][t2]["count"] += 1
 
 	def score_all(self):
 		for e in list(self.graph.edges()):
-			self.graph[e[0]][e[1]]["score"] = self.graph[e[0]][e[1]]["points"]/self.graph[e[0]][e[1]]["total"]
+			self.graph[e[0]][e[1]]["score"] = self.graph[e[0]][e[1]]["points"]/self.graph[e[0]][e[1]]["count"]
 
 	def get_indiv_ranking(self):
 		l = deepcopy(self.players)

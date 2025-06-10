@@ -18,6 +18,7 @@ html_start = """
 		        <a href="indiv_ranking.html">Individual ranking</a>
 		        <a href="team_ranking.html">Team ranking</a>
 		        <a href="data.html">Games</a>
+		        <a href="stats.html">Statistics</a>
 		    
 			</nav>
 """
