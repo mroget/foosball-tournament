@@ -29,7 +29,10 @@ class Instance:
 	def solve(self):
 		if len(self.teams) > 0:
 			path = "./ranking/target/release/ranking"
-			output = subprocess.run([path, "-v 0", "-s 5"], input=self.get_instance(), capture_output=True, text=True).stdout
+			if len(self.team) <=10:
+				output = subprocess.run([path, "-v 0", "-e"], input=self.get_instance(), capture_output=True, text=True).stdout
+			else:
+				output = subprocess.run([path, "-v 0", "-s 60"], input=self.get_instance(), capture_output=True, text=True).stdout
 			ranking = list(map(int,output.split(":")[1].strip().split(" ")))
 			ranking = [self.teams[i].id for i in ranking]
 			return ranking
