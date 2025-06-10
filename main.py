@@ -33,6 +33,10 @@ def update_team_ranking(data):
 	with open("team_ranking.html", "w") as f:
 		f.write(hw.html_page("\n".join(rankings)))
 
+def get_team_names(team):
+	s = f"{str(team.players[0])}\n{str(team.players[1])}"
+	size = max(len(str(team.players[0])), len(str(team.players[1])))
+	return s, size**2 * 60
 
 
 data = reader.read()
@@ -42,8 +46,10 @@ edgelist = list(set([e if data.graph[e[0]][e[1]]["score"] > 0.5 else (e[1],e[0])
 update_matches(data)
 update_indiv_ranking(data)
 update_team_ranking(data)
-pos = nx.spring_layout(data.graph, scale=10)
-nx.draw(data.graph, pos, node_color="gray", node_size=[len(str(u))**2 * 60 for u in data.graph.nodes()], edgelist=edgelist)
-nx.draw_networkx_labels(data.graph, pos, {u:str(u) for u in data.graph.nodes()})
+
+node_labels = {u:get_team_names(u) for u in data.graph.nodes()}
+pos = nx.spring_layout(data.graph, k=500, iterations=1000, scale = 20)
+nx.draw(data.graph, pos, node_color="gray", node_size=[node_labels[u][1] for u in data.graph.nodes()], edgelist=edgelist)
+nx.draw_networkx_labels(data.graph, pos, {u:node_labels[u][0] for u in data.graph.nodes()})
 nx.draw_networkx_edge_labels(data.graph, pos, {e:np.round(data.graph[e[0]][e[1]]["score"],2) for e in edgelist})
 plt.savefig("graph.svg")
