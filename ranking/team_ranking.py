@@ -6,7 +6,7 @@ class Instance:
 	def __init__(self, graph, allowed_teams):
 		self.graph = graph
 		degree = dict(nx.degree(self.graph))
-		self.teams = [u for u in degree if degree[u] >= 1 and u in allowed_teams]
+		self.teams = [u for u in degree if degree[u] >= 4 and u in allowed_teams]
 		self.teams_id = {self.teams[i] : i for i in range(len(self.teams))}
 		self.votes = []
 		for t in self.teams:
