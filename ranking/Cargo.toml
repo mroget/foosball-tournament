@@ -1,0 +1,11 @@
+[package]
+name = "ranking"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tqdm = "0.7.0"
+rand = "0.9.1"
+itertools = "0.14.0"
+factorial = "0.4.0"
+rayon = "1.10.0"

@@ -29,8 +29,11 @@ html_end = """
 
 
 def html_table(col_name, data):
-	global html_start, html_end
 	names = "<tr>{}</tr>".format(" ".join([f"<th>{i}</th>" for i in col_name]))
 	items = "\n".join(["<tr>{}</tr>".format(" ".join([f"<td>{i}</td>" for i in l])) for l in data])
+	return f"<table>\n{names}\n{items}</table>"
+
+def html_page(body):
+	global html_start, html_end
 	today = datetime.now()
-	return f"{html_start}\n<table>\n{names}\n{items}</table><p>Last update: {today}</p>{html_end}"
+	return f"{html_start}\n{body}<p>Last update: {today}</p>{html_end}"

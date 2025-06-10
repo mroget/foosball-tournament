@@ -170,6 +170,23 @@ class Data:
 			ret.append([str(l[rank]), str(score), str(rank+1), str(games), str(won), str(lost), f"{int(100*won/games)}%"])
 		return ret
 
+	def get_team_stats(self, team_id):
+		won = 0
+		lost = 0
+		for i in range(len(self.matches)):
+			if self.matches[i].team1 == self.teams[team_id]:
+				if self.matches[i].point1 > self.matches[i].point2:
+					won+=1
+				else:
+					lost+=1
+			if self.matches[i].team2 == self.teams[team_id]:
+				if self.matches[i].point2 > self.matches[i].point1:
+					won+=1
+				else:
+					lost+=1
+		games = won+lost
+		return [self.teams[team_id], str(games), str(won), str(lost), f"{int(100*won/games)}%"]
+
 	def __str__(self):
 		return "Players: {}\nTeams: {}\nMatches:\n{}".format(
 			self.elo,
