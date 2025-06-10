@@ -6,7 +6,7 @@ class Instance:
 	def __init__(self, graph, allowed_teams):
 		self.graph = graph
 		degree = dict(nx.degree(self.graph))
-		self.teams = [u for u in degree if degree[u] >= 4 and u in allowed_teams]
+		self.teams = [u for u in degree if degree[u] >= 8 and u in allowed_teams]
 		self.teams_id = {self.teams[i] : i for i in range(len(self.teams))}
 		self.votes = []
 		for t in self.teams:
@@ -27,8 +27,10 @@ class Instance:
 		return f"{candidates}\n{candidates}\n{votes}"
 
 	def solve(self):
-		path = "./ranking/target/release/ranking"
-		output = subprocess.run([path, "-v 0", "-s 5"], input=self.get_instance(), capture_output=True, text=True).stdout
-		ranking = list(map(int,output.split(":")[1].strip().split(" ")))
-		ranking = [self.teams[i].id for i in ranking]
-		return ranking
+		if len(self.teams) > 0:
+			path = "./ranking/target/release/ranking"
+			output = subprocess.run([path, "-v 0", "-s 5"], input=self.get_instance(), capture_output=True, text=True).stdout
+			ranking = list(map(int,output.split(":")[1].strip().split(" ")))
+			ranking = [self.teams[i].id for i in ranking]
+			return ranking
+		return []

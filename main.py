@@ -26,8 +26,9 @@ def update_team_ranking(data):
 		inst = Instance(data.graph, l[i])
 		r = inst.solve()
 		items = [[j+1] + data.get_team_stats(r[j]) for j in range(len(r))]
-		rankings.append(f"<h1>Group {i+1}</h1>")
-		rankings.append(hw.html_table(names, items))
+		if len(r) > 0:
+			rankings.append(f"<h1>Group {i+1}</h1>")
+			rankings.append(hw.html_table(names, items))
 
 	with open("team_ranking.html", "w") as f:
 		f.write(hw.html_page("\n".join(rankings)))
