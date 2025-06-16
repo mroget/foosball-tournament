@@ -84,10 +84,10 @@ class Data:
 			if p.is_equal(name):
 				return p
 		self.players.append(Player(name))
-		self.elo[self.players[-1].name] = 1000
-		self.games[self.players[-1].name] = 0
-		self.won[self.players[-1].name] = 0
-		self.lost[self.players[-1].name] = 0
+		self.elo[self.players[-1].name] = [1000]
+		self.games[self.players[-1].name] = [0]
+		self.won[self.players[-1].name] = [0]
+		self.lost[self.players[-1].name] = [0]
 		return self.players[-1]
 
 	def add_team(self, name1, name2):
@@ -102,10 +102,10 @@ class Data:
 		return self.teams[-1]
 
 	def update_elo(self, t1, t2, point1, point2):
-		R11 = self.elo[t1.players[0].name]
-		R12 = self.elo[t1.players[1].name]
-		R21 = self.elo[t2.players[0].name]
-		R22 = self.elo[t2.players[1].name]
+		R11 = self.elo[t1.players[0].name][-1]
+		R12 = self.elo[t1.players[1].name][-1]
+		R21 = self.elo[t2.players[0].name][-1]
+		R22 = self.elo[t2.players[1].name][-1]
 
 		R1 = (R11 + R12)/2
 		R2 = (R21 + R22)/2
@@ -117,26 +117,26 @@ class Data:
 		S1 = point1/total
 		S2 = point2/total
 
-		self.elo[t1.players[0].name] = R11 + 100 * (S1 - E1)
-		self.elo[t1.players[1].name] = R12 + 100 * (S1 - E1)
-		self.elo[t2.players[0].name] = R21 + 100 * (S2 - E2)
-		self.elo[t2.players[1].name] = R22 + 100 * (S2 - E2)
+		self.elo[t1.players[0].name] += [R11 + 100 * (S1 - E1)]
+		self.elo[t1.players[1].name] += [R12 + 100 * (S1 - E1)]
+		self.elo[t2.players[0].name] += [R21 + 100 * (S2 - E2)]
+		self.elo[t2.players[1].name] += [R22 + 100 * (S2 - E2)]
 
-		self.games[t1.players[0].name] += 1
-		self.games[t1.players[1].name] += 1
-		self.games[t2.players[0].name] += 1
-		self.games[t2.players[1].name] += 1
+		self.games[t1.players[0].name] += [self.games[t1.players[0].name][-1]+1]
+		self.games[t1.players[1].name] += [self.games[t1.players[1].name][-1]+1]
+		self.games[t2.players[0].name] += [self.games[t2.players[0].name][-1]+1]
+		self.games[t2.players[1].name] += [self.games[t2.players[1].name][-1]+1]
 		
 		if point1 > point2:
-			self.won[t1.players[0].name] += 1
-			self.won[t1.players[1].name] += 1
-			self.lost[t2.players[0].name] += 1
-			self.lost[t2.players[1].name] += 1
+			self.won[t1.players[0].name] += [self.won[t1.players[0].name][-1]+1]
+			self.won[t1.players[1].name] += [self.won[t1.players[1].name][-1]+1]
+			self.lost[t2.players[0].name] += [self.lost[t2.players[0].name][-1]+1]
+			self.lost[t2.players[1].name] += [self.lost[t2.players[1].name][-1]+1]
 		else:
-			self.lost[t1.players[0].name] += 1
-			self.lost[t1.players[1].name] += 1
-			self.won[t2.players[0].name] += 1
-			self.won[t2.players[1].name] += 1
+			self.lost[t1.players[0].name] += [self.lost[t1.players[0].name][-1]+1]
+			self.lost[t1.players[1].name] += [self.lost[t1.players[1].name][-1]+1]
+			self.won[t2.players[0].name] += [self.won[t2.players[0].name][-1]+1]
+			self.won[t2.players[1].name] += [self.won[t2.players[1].name][-1]+1]
 
 	def add_match(self, name11, name12, name21, name22, point1, point2, date):
 		t1 = self.add_team(name11,name12)
@@ -160,13 +160,13 @@ class Data:
 
 	def get_indiv_ranking(self):
 		l = deepcopy(self.players)
-		l.sort(key=lambda x:-self.elo[x.name])
+		l.sort(key=lambda x:-self.elo[x.name][-1])
 		ret = []
 		for rank in range(len(l)):
-			score = int(self.elo[l[rank].name])
-			won = self.won[l[rank].name]
-			lost = self.lost[l[rank].name]
-			games = self.games[l[rank].name]
+			score = int(self.elo[l[rank].name][-1])
+			won = self.won[l[rank].name][-1]
+			lost = self.lost[l[rank].name][-1]
+			games = self.games[l[rank].name][-1]
 			ret.append([str(l[rank]), str(score), str(rank+1), str(games), str(won), str(lost), f"{int(100*won/games)}%"])
 		return ret
 
