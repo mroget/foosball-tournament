@@ -2,12 +2,40 @@ import json
 import requests
 import networkx as nx
 from copy import deepcopy
+import pandas as pd
 
 def string_format(s):
 	return s.strip().lower()
 
 def logistic(x):
 	return 1/(1+10**(x/500))
+
+class Serie:
+	def __init__(self, init=[]):
+		self.date = []
+		self.data = {}
+		for date,data in init:
+			self.add(date,data)
+
+	def add(self, date, data):
+		if len(self.date) == 0 or self.date[-1] != date:
+			self.date.append(date)
+		self.data[date] = data
+
+	def get(self, date):
+		k = len(self.date)-1
+		while self.date[k] > date:
+			k-=1
+		return self.data[self.date[k]]
+
+	def get_all(self):
+		return deepcopy(self.date), [self.data[d] for d in self.date]
+
+	def peek(self):
+		return self.data[self.date[-1]]
+
+	def incr(self, date):
+		self.add(date, self.peek()+1)
 
 class Player:
 	def __init__(self, name):
@@ -75,6 +103,7 @@ class Data:
 		self.games = {}
 		self.won = {}
 		self.lost = {}
+		self.dates = Serie([("2025-06-09",0)])
 		self.teams = []
 		self.matches = []
 		self.graph = nx.DiGraph()
@@ -84,10 +113,10 @@ class Data:
 			if p.is_equal(name):
 				return p
 		self.players.append(Player(name))
-		self.elo[self.players[-1].name] = [1000]
-		self.games[self.players[-1].name] = [0]
-		self.won[self.players[-1].name] = [0]
-		self.lost[self.players[-1].name] = [0]
+		self.elo[self.players[-1].name] = Serie([("2025-06-09",1000)])
+		self.games[self.players[-1].name] = Serie([("2025-06-09",0)])
+		self.won[self.players[-1].name] = Serie([("2025-06-09",0)])
+		self.lost[self.players[-1].name] = Serie([("2025-06-09",0)])
 		return self.players[-1]
 
 	def add_team(self, name1, name2):
@@ -101,11 +130,11 @@ class Data:
 		self.teams.append(tmp)
 		return self.teams[-1]
 
-	def update_elo(self, t1, t2, point1, point2):
-		R11 = self.elo[t1.players[0].name][-1]
-		R12 = self.elo[t1.players[1].name][-1]
-		R21 = self.elo[t2.players[0].name][-1]
-		R22 = self.elo[t2.players[1].name][-1]
+	def update_elo(self, t1, t2, point1, point2, date):
+		R11 = self.elo[t1.players[0].name].peek()
+		R12 = self.elo[t1.players[1].name].peek()
+		R21 = self.elo[t2.players[0].name].peek()
+		R22 = self.elo[t2.players[1].name].peek()
 
 		R1 = (R11 + R12)/2
 		R2 = (R21 + R22)/2
@@ -117,32 +146,33 @@ class Data:
 		S1 = point1/total
 		S2 = point2/total
 
-		self.elo[t1.players[0].name] += [R11 + 100 * (S1 - E1)]
-		self.elo[t1.players[1].name] += [R12 + 100 * (S1 - E1)]
-		self.elo[t2.players[0].name] += [R21 + 100 * (S2 - E2)]
-		self.elo[t2.players[1].name] += [R22 + 100 * (S2 - E2)]
+		self.elo[t1.players[0].name].add(date, R11 + 100 * (S1 - E1))
+		self.elo[t1.players[1].name].add(date, R12 + 100 * (S1 - E1))
+		self.elo[t2.players[0].name].add(date, R21 + 100 * (S2 - E2))
+		self.elo[t2.players[1].name].add(date, R22 + 100 * (S2 - E2))
 
-		self.games[t1.players[0].name] += [self.games[t1.players[0].name][-1]+1]
-		self.games[t1.players[1].name] += [self.games[t1.players[1].name][-1]+1]
-		self.games[t2.players[0].name] += [self.games[t2.players[0].name][-1]+1]
-		self.games[t2.players[1].name] += [self.games[t2.players[1].name][-1]+1]
+		self.games[t1.players[0].name].incr(date)
+		self.games[t1.players[1].name].incr(date)
+		self.games[t2.players[0].name].incr(date)
+		self.games[t2.players[1].name].incr(date)
 		
 		if point1 > point2:
-			self.won[t1.players[0].name] += [self.won[t1.players[0].name][-1]+1]
-			self.won[t1.players[1].name] += [self.won[t1.players[1].name][-1]+1]
-			self.lost[t2.players[0].name] += [self.lost[t2.players[0].name][-1]+1]
-			self.lost[t2.players[1].name] += [self.lost[t2.players[1].name][-1]+1]
+			self.won[t1.players[0].name].incr(date)
+			self.won[t1.players[1].name].incr(date)
+			self.lost[t2.players[0].name].incr(date)
+			self.lost[t2.players[1].name].incr(date)
 		else:
-			self.lost[t1.players[0].name] += [self.lost[t1.players[0].name][-1]+1]
-			self.lost[t1.players[1].name] += [self.lost[t1.players[1].name][-1]+1]
-			self.won[t2.players[0].name] += [self.won[t2.players[0].name][-1]+1]
-			self.won[t2.players[1].name] += [self.won[t2.players[1].name][-1]+1]
+			self.lost[t1.players[0].name].incr(date)
+			self.lost[t1.players[1].name].incr(date)
+			self.won[t2.players[0].name].incr(date)
+			self.won[t2.players[1].name].incr(date)
 
 	def add_match(self, name11, name12, name21, name22, point1, point2, date):
 		t1 = self.add_team(name11,name12)
 		t2 = self.add_team(name21,name22)
 		self.matches.append(Match(t1,t2,point1,point2,date))
-		self.update_elo(t1,t2,point1,point2)
+		self.dates.add(date,0)
+		self.update_elo(t1,t2,point1,point2,date)
 		self.add_edge(t1,t2,point1,point2)
 		self.add_edge(t2,t1,point2,point1)
 
@@ -160,15 +190,26 @@ class Data:
 
 	def get_indiv_ranking(self):
 		l = deepcopy(self.players)
-		l.sort(key=lambda x:-self.elo[x.name][-1])
+		l.sort(key=lambda x:-self.elo[x.name].peek())
 		ret = []
 		for rank in range(len(l)):
-			score = int(self.elo[l[rank].name][-1])
-			won = self.won[l[rank].name][-1]
-			lost = self.lost[l[rank].name][-1]
-			games = self.games[l[rank].name][-1]
+			score = int(self.elo[l[rank].name].peek())
+			won = self.won[l[rank].name].peek()
+			lost = self.lost[l[rank].name].peek()
+			games = self.games[l[rank].name].peek()
 			ret.append([str(l[rank]), str(score), str(rank+1), str(games), str(won), str(lost), f"{int(100*won/games)}%"])
 		return ret
+
+	def get_indiv_stats(self):
+		l = []
+		for date in self.dates.date:
+			for player in self.players:
+				games = self.games[player.name].get(date)
+				lost = self.lost[player.name].get(date)
+				won = self.won[player.name].get(date)
+				elo = self.elo[player.name].get(date)
+				l.append([str(player), games, won, lost, elo, date])
+		return pd.DataFrame(l, columns =  ["player", "games", "won", "lost", "elo", "date"])
 
 	def get_team_stats(self, team_id):
 		won = 0

@@ -4,6 +4,7 @@ import html_writer as hw
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 
 def update_matches(data):
@@ -53,3 +54,13 @@ nx.draw(data.graph, pos, node_color="gray", node_size=[node_labels[u][1] for u i
 nx.draw_networkx_labels(data.graph, pos, {u:node_labels[u][0] for u in data.graph.nodes()})
 nx.draw_networkx_edge_labels(data.graph, pos, {e:np.round(data.graph[e[0]][e[1]]["score"],2) for e in edgelist})
 plt.savefig("graph.svg")
+
+
+
+
+df = data.get_indiv_stats()
+df["ratio"] = 100*df["won"]/df["games"]
+for target in ["games", "ratio", "elo"]:
+	plt.figure(figsize=(25,15))
+	sns.lineplot(data=df, x="date", y=target, hue="player")
+	plt.savefig(f"{target}.svg")
